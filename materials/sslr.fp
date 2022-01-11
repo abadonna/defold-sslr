@@ -1,12 +1,16 @@
 varying mediump vec2 var_texcoord0;
 varying mediump vec4 var_position;
-uniform mediump mat4 mtx_viewproj;
-varying mediump mat4 var_mtx_invproj;
+varying highp mat4 var_mtx_invproj;
+varying highp mat4 var_mtx_invview;
+varying highp mat4 var_mtx_invviewproj;
 
 uniform highp sampler2D tex0;
 uniform highp sampler2D tex1;
 uniform highp sampler2D tex2;
-uniform mediump mat4 mtx_proj;
+uniform highp mat4 mtx_proj;
+uniform highp mat4 mtx_viewproj;
+
+uniform mediump vec4 camera;
 
 float rgba_to_float(vec4 rgba)
 {
@@ -18,7 +22,7 @@ vec3 get_position(vec2 uv, float depth)
 	vec4 position = vec4(1.0); 
 	position.xy = uv.xy * 2.0 - 1.0; 
 	position.z = depth; 
-	position = var_mtx_invproj * position; 
+	position = var_mtx_invviewproj * position; 
 	position /= position.w;
 	return position.xyz;
 }
@@ -26,7 +30,7 @@ vec3 get_position(vec2 uv, float depth)
 vec3 get_uv(vec3 position)
 {
 	vec4 p = vec4(position, 1.0);
-	p = mtx_proj * p;
+	p = mtx_viewproj * p;
 	p.xy /= p.w; // perspective divide
 	p.xy  = p.xy * 0.5 + 0.5; // transform to range 0.0 - 1.0  
 	return p.xyz;
@@ -43,11 +47,14 @@ void main()
 	vec3 normal = (data.xyz * 2.0 - 1.0);
 	float depth = get_depth(var_texcoord0);
 
+	vec4 n = var_mtx_invview * vec4(normal, 0.); // normal to to world space
+	normal = n.xyz;
+	
 	vec3 pos = get_position(var_texcoord0, depth);
-	vec3 view_dir = normalize(pos);// - camera.xyz);
+	vec3 view_dir = normalize(pos - camera.xyz);
 	float fresnel = clamp(1 - dot(-view_dir, normal), 0., 1.);
 	
-	if (fresnel < 0.002) {
+	if (fresnel < 0.002 || depth < 0.01) {
 		gl_FragColor = vec4(0); 
 		return;
 	}
@@ -56,7 +63,7 @@ void main()
 
 	vec3 ray = vec3(0.);
 	vec3 nuv = vec3(0.);
-	float L = 0.01;
+	float L = 0.1;
 	for(int i = 0; i < 6; i++)
 	{
 		ray = pos + reflect_dir * L;
@@ -66,13 +73,14 @@ void main()
 		L = length(pos - p);
 	}
 
-	L = clamp(L * 4., 0, 1);
+	L = clamp(L * 0.5, 0, 1);
 
 	float error = (1. - L);
-	float factor = error * fresnel;
+	float factor = error  * fresnel;
 	vec4 color =  vec4(texture(tex0, nuv.xy).xyz * factor, factor);
 
 	gl_FragColor = color;
-	//vec4(fresnel,fresnel,fresnel, 1);
+	//gl_FragColor = vec4(fresnel,fresnel,fresnel, 1);
+	//gl_FragColor = vec4(vec3(get_depth(var_texcoord0)), 1);
 	
 }

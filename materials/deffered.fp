@@ -1,7 +1,7 @@
 varying mediump vec2 var_texcoord0;
 varying mediump vec4 var_position;
-uniform mediump mat4 mtx_viewproj;
-varying mediump mat4 var_mtx_invproj;
+uniform highp mat4 mtx_viewproj;
+varying highp mat4 var_mtx_invproj;
 
 uniform mediump sampler2D tex0;
 uniform mediump sampler2D tex1;

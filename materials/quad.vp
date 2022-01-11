@@ -7,6 +7,8 @@ uniform highp mat4 mtx_view;
 uniform highp mat4 mtx_viewproj;
 
 varying highp mat4 var_mtx_invproj;
+varying highp mat4 var_mtx_invview;
+varying highp mat4 var_mtx_invviewproj;
 
 varying mediump vec4 var_position;
 
@@ -55,6 +57,8 @@ void main()
 {
     var_texcoord0 = texcoord0;
     var_mtx_invproj = inverse(mtx_proj);
+    var_mtx_invview = inverse(mtx_view);
+    var_mtx_invviewproj = inverse(mtx_viewproj);
     
     gl_Position = position;
     
