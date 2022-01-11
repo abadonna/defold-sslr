@@ -63,11 +63,11 @@ void main()
 
 	vec3 ray = vec3(0.);
 	vec3 nuv = vec3(0.);
-	float L = 0.1;
-	for(int i = 0; i < 6; i++)
+	float L = 0.05;
+	for(int i = 0; i < 10; i++)
 	{
 		ray = pos + reflect_dir * L;
-		nuv = get_uv(ray); // проецирование позиции на экран
+		nuv = get_uv(ray);
 		depth = get_depth(nuv.xy);
 		vec3 p = get_position(nuv.xy, depth);
 		L = length(pos - p);

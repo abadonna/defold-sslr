@@ -41,6 +41,6 @@ void main()
 	diff_light = max(dot(normal, diff_light), 0.0) + ambient_light;
 	diff_light = clamp(diff_light, 0.0, 1.0);
 
-	gl_FragColor = vec4(mix(diff_light * color.xyz, reflection.xyz, reflection.w * 0.8), 1);
+	gl_FragColor = vec4(mix(diff_light * color.xyz, reflection.xyz, reflection.w), 1);
 	//gl_FragColor = reflection;
 }

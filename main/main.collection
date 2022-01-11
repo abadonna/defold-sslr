@@ -160,7 +160,7 @@ embedded_instances {
   }
   scale3 {
     x: 3.0
-    y: 0.2
+    y: 0.01
     z: 3.0
   }
 }
@@ -192,8 +192,8 @@ embedded_instances {
   ""
   position {
     x: 0.0
-    y: -0.4
-    z: -0.5
+    y: -0.6
+    z: -0.2
   }
   rotation {
     x: 0.0
@@ -202,9 +202,9 @@ embedded_instances {
     w: 1.0
   }
   scale3 {
-    x: 0.7
-    y: 0.7
-    z: 0.7
+    x: 1.0
+    y: 1.0
+    z: 1.0
   }
 }
 embedded_instances {
@@ -214,7 +214,7 @@ embedded_instances {
   "  type: \"model\"\n"
   "  data: \"mesh: \\\"/builtins/assets/meshes/cube.dae\\\"\\n"
   "material: \\\"/materials/unlit.material\\\"\\n"
-  "textures: \\\"/assets/MarbleTiles02_4K_BaseColor.png\\\"\\n"
+  "textures: \\\"/builtins/assets/images/logo/logo_blue_256.png\\\"\\n"
   "skeleton: \\\"\\\"\\n"
   "animations: \\\"\\\"\\n"
   "default_animation: \\\"\\\"\\n"
@@ -236,7 +236,7 @@ embedded_instances {
   position {
     x: 0.8
     y: -0.4
-    z: 0.5
+    z: 0.0
   }
   rotation {
     x: 0.0
