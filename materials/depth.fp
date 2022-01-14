@@ -1,3 +1,4 @@
+varying highp vec4 var_position;
 
 vec4 float_to_rgba(float v)
 {
@@ -9,6 +10,7 @@ vec4 float_to_rgba(float v)
 
 void main()
 {
-    gl_FragColor = float_to_rgba(gl_FragCoord.z);
+    float far = 20.;
+    gl_FragColor = float_to_rgba(- var_position.z / far);
 }
 

@@ -1,30 +1,4 @@
---
--- projection that centers content with maintained aspect ratio and optional zoom
---
-local function fixed_projection(near, far, zoom)
-    local projected_width = render.get_window_width() / (zoom or 1)
-    local projected_height = render.get_window_height() / (zoom or 1)
-    local xoffset = -(projected_width - render.get_width()) / 2
-    local yoffset = -(projected_height - render.get_height()) / 2
-    return vmath.matrix4_orthographic(xoffset, xoffset + projected_width, yoffset, yoffset + projected_height, near, far)
-end
---
--- projection that centers and fits content with maintained aspect ratio
---
-local function fixed_fit_projection(near, far)
-    local width = render.get_width()
-    local height = render.get_height()
-    local window_width = render.get_window_width()
-    local window_height = render.get_window_height()
-    local zoom = math.min(window_width / width, window_height / height)
-    return fixed_projection(near, far, zoom)
-end
---
--- projection that stretches content
---
-local function stretch_projection(near, far)
-    return vmath.matrix4_orthographic(0, render.get_width(), 0, render.get_height(), near, far)
-end
+
 
 local function get_projection(self)
     return self.projection_fn(self.near, self.far, self.zoom)
@@ -99,21 +73,25 @@ function init(self)
 
     self.view = vmath.matrix4()
 
-    -- default is stretch projection. copy from builtins and change for different projection
-    -- or send a message to the render script to change projection:
-    -- msg.post("@render:", "use_stretch_projection", { near = -1, far = 1 })
-    -- msg.post("@render:", "use_fixed_projection", { near = -1, far = 1, zoom = 2 })
-    -- msg.post("@render:", "use_fixed_fit_projection", { near = -1, far = 1 })
-    self.near = -1
-    self.far = 1
-    self.projection_fn = stretch_projection
+    self.near = 0.1
+    self.far = 20.
+  
     self.need_update = true
+
+    self.cb = render.constant_buffer()
 end
 
 function update(self)
     if self.need_update then
         self.tex_width = render.get_window_width()
         self.tex_height = render.get_window_height()
+        
+        local aspect = self.tex_width / self.tex_height
+        local fov = 0.7854
+        local T = self.near * math.tan(0.5 * fov)
+        local R = aspect * T
+        self.cb.righttop = vmath.vector4(R, T, self.near, self.far)
+        
         create_render_targets(self)
         self.need_update = false
     end
@@ -161,13 +139,13 @@ function update(self)
     render.enable_texture(0, self.color_target, render.BUFFER_COLOR_BIT)
     render.enable_texture(1, self.normal_target, render.BUFFER_COLOR_BIT)
     render.enable_texture(2, self.depth_target, render.BUFFER_COLOR_BIT)
-    render.draw(self.quad_pred)
+    render.draw(self.quad_pred, self.cb)
 
     render.set_render_target(render.RENDER_TARGET_DEFAULT)
     render.enable_texture(3, self.sslr_target, render.BUFFER_COLOR_BIT)
     render.clear({[render.BUFFER_COLOR_BIT] = vmath.vector4(0), [render.BUFFER_DEPTH_BIT] = 1})
     render.enable_material("deffered")
-    render.draw(self.quad_pred)
+    render.draw(self.quad_pred, self.cb)
     render.disable_material()
     
     render.disable_texture(0)

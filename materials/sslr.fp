@@ -1,8 +1,5 @@
 varying mediump vec2 var_texcoord0;
-varying mediump vec4 var_position;
-varying highp mat4 var_mtx_invproj;
-varying highp mat4 var_mtx_invview;
-varying highp mat4 var_mtx_invviewproj;
+uniform mediump vec4 righttop;
 
 uniform highp sampler2D tex0;
 uniform highp sampler2D tex1;
@@ -10,30 +7,29 @@ uniform highp sampler2D tex2;
 uniform highp mat4 mtx_proj;
 uniform highp mat4 mtx_viewproj;
 
-uniform mediump vec4 camera;
-
 float rgba_to_float(vec4 rgba)
 {
 	return dot(rgba, vec4(1.0, 1.0/255.0, 1.0/65025.0, 1.0/16581375.0));
 }
 
-vec3 get_position(vec2 uv, float depth)
+vec3 unproject(vec2 uv)
 {
-	vec4 position = vec4(1.0); 
-	position.xy = uv.xy * 2.0 - 1.0; 
-	position.z = depth; 
-	position = var_mtx_invviewproj * position; 
-	position /= position.w;
-	return position.xyz;
+	float near = righttop.z;
+	float far = righttop.w;
+	float d = rgba_to_float(texture2D(tex2, uv));
+	vec2 ndc = uv * 2.0 - 1.0;
+	vec2 pnear = ndc * righttop.xy;
+	float pz = -d * far;
+	return vec3(-pz * pnear.x / near, -pz * pnear.y / near, pz);
 }
 
-vec3 get_uv(vec3 position)
+vec2 get_uv(vec3 position)
 {
 	vec4 p = vec4(position, 1.0);
-	p = mtx_viewproj * p;
+	p = mtx_proj * p;
 	p.xy /= p.w; // perspective divide
 	p.xy  = p.xy * 0.5 + 0.5; // transform to range 0.0 - 1.0  
-	return p.xyz;
+	return p.xy;
 }
 
 float get_depth(vec2 uv)
@@ -45,16 +41,12 @@ void main()
 {
 	vec4 data = texture(tex1, var_texcoord0);
 	vec3 normal = (data.xyz * 2.0 - 1.0);
-	float depth = get_depth(var_texcoord0);
-
-	vec4 n = var_mtx_invview * vec4(normal, 0.); // normal to to world space
-	normal = n.xyz;
 	
-	vec3 pos = get_position(var_texcoord0, depth);
-	vec3 view_dir = normalize(pos - camera.xyz);
+	vec3 pos = unproject(var_texcoord0);
+	vec3 view_dir = normalize(pos);
 	float fresnel = clamp(1 - dot(-view_dir, normal), 0., 1.);
 	
-	if (fresnel < 0.002 || depth < 0.01) {
+	if (fresnel < 0.002 || pos.z > -0.001) {
 		gl_FragColor = vec4(0); 
 		return;
 	}
@@ -62,18 +54,24 @@ void main()
 	vec3 reflect_dir = normalize(reflect(view_dir, normal));
 
 	vec3 ray = vec3(0.);
-	vec3 nuv = vec3(0.);
-	float L = 0.05;
+	vec2 nuv = vec2(0.);
+	float L = 0.5;
+	vec3 p = vec3(0.);
 	for(int i = 0; i < 10; i++)
 	{
 		ray = pos + reflect_dir * L;
 		nuv = get_uv(ray);
-		depth = get_depth(nuv.xy);
-		vec3 p = get_position(nuv.xy, depth);
+		p = unproject(nuv.xy);
 		L = length(pos - p);
 	}
 
-	L = clamp(L * 0.5, 0, 1);
+	if (nuv.x > 1. || nuv.x < 0. || nuv.y > 1. || nuv.y < 0. ||
+		pos.z < p.z || abs(ray.z - p.z) > 0.2) {
+		gl_FragColor = vec4(0);
+		return;
+	}
+
+	L = clamp(L * 0.3, 0, 1);
 
 	float error = (1. - L);
 	float factor = error  * fresnel;

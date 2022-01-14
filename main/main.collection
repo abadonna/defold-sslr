@@ -5,6 +5,7 @@ embedded_instances {
   children: "base"
   children: "cube"
   children: "sphere"
+  children: "wall"
   data: "components {\n"
   "  id: \"main\"\n"
   "  component: \"/main/main.script\"\n"
@@ -80,7 +81,7 @@ embedded_instances {
   }
 }
 embedded_instances {
-  id: "go"
+  id: "sslr"
   data: "embedded_components {\n"
   "  id: \"model\"\n"
   "  type: \"model\"\n"
@@ -191,7 +192,7 @@ embedded_instances {
   "}\n"
   ""
   position {
-    x: 0.0
+    x: -0.1
     y: -0.6
     z: -0.2
   }
@@ -248,5 +249,48 @@ embedded_instances {
     x: 0.7
     y: 0.7
     z: 0.7
+  }
+}
+embedded_instances {
+  id: "wall"
+  data: "embedded_components {\n"
+  "  id: \"model\"\n"
+  "  type: \"model\"\n"
+  "  data: \"mesh: \\\"/builtins/assets/meshes/cube.dae\\\"\\n"
+  "material: \\\"/materials/unlit.material\\\"\\n"
+  "textures: \\\"/builtins/assets/images/logo/logo_256.png\\\"\\n"
+  "skeleton: \\\"\\\"\\n"
+  "animations: \\\"\\\"\\n"
+  "default_animation: \\\"\\\"\\n"
+  "name: \\\"unnamed\\\"\\n"
+  "\"\n"
+  "  position {\n"
+  "    x: 0.0\n"
+  "    y: 0.0\n"
+  "    z: 0.0\n"
+  "  }\n"
+  "  rotation {\n"
+  "    x: 0.0\n"
+  "    y: 0.0\n"
+  "    z: 0.0\n"
+  "    w: 1.0\n"
+  "  }\n"
+  "}\n"
+  ""
+  position {
+    x: 0.0
+    y: -0.5
+    z: -1.0
+  }
+  rotation {
+    x: 0.8660254
+    y: 0.0
+    z: 0.0
+    w: 0.5
+  }
+  scale3 {
+    x: 3.0
+    y: 0.01
+    z: 3.0
   }
 }
