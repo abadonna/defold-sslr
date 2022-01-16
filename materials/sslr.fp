@@ -21,7 +21,7 @@ vec3 get_position(vec2 uv, float depth)
 {
 	vec4 position = vec4(1.0); 
 	position.xy = uv.xy * 2.0 - 1.0; 
-	position.z = depth; 
+	position.z = depth * 2.0 - 1.0;
 	position = var_mtx_invviewproj * position; 
 	position /= position.w;
 	return position.xyz;
@@ -36,17 +36,12 @@ vec3 get_uv(vec3 position)
 	return p.xyz;
 }
 
-float get_depth(vec2 uv)
-{
-	return rgba_to_float(texture(tex2, uv));
-}
-
 void main()
 {
 	vec4 data = texture(tex1, var_texcoord0);
 	vec3 normal = (data.xyz * 2.0 - 1.0);
-	float depth = get_depth(var_texcoord0);
-
+	float depth = rgba_to_float(texture(tex2, var_texcoord0));
+	
 	vec4 n = var_mtx_invview * vec4(normal, 0.); // normal to to world space
 	normal = n.xyz;
 	
@@ -54,8 +49,8 @@ void main()
 	vec3 view_dir = normalize(pos - camera.xyz);
 	float fresnel = clamp(1 - dot(-view_dir, normal), 0., 1.);
 	
-	if (fresnel < 0.002 || depth < 0.01) {
-		gl_FragColor = vec4(0); 
+	if (fresnel < 0.002 || depth < 0.001) {
+		gl_FragColor = vec4(0.); 
 		return;
 	}
 
@@ -64,15 +59,22 @@ void main()
 	vec3 ray = vec3(0.);
 	vec3 nuv = vec3(0.);
 	float L = 0.05;
+	vec3 p = vec3(0.);
 	for(int i = 0; i < 10; i++)
 	{
 		ray = pos + reflect_dir * L;
 		nuv = get_uv(ray);
-		depth = get_depth(nuv.xy);
-		vec3 p = get_position(nuv.xy, depth);
+		depth = rgba_to_float(texture(tex2, nuv.xy));
+		p = get_position(nuv.xy, depth);
 		L = length(pos - p);
 	}
 
+	if (nuv.x > 1. || nuv.x < 0. || nuv.y > 1. || nuv.y < 0. ||
+		pos.z < p.z || abs(ray.z - p.z) > 0.2) {
+			gl_FragColor = vec4(0);
+			return;
+	}
+		
 	L = clamp(L * 0.5, 0, 1);
 
 	float error = (1. - L);

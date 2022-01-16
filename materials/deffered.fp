@@ -14,7 +14,7 @@ vec3 get_position(vec2 uv, float depth)
 {
 	vec4 position = vec4(1.0); 
 	position.xy = uv.xy * 2.0 - 1.0; 
-	position.z = depth; 
+	position.z = depth * 2.0 - 1.0; 
 	position = var_mtx_invproj * position; 
 	position /= position.w;
 	return position.xyz;
